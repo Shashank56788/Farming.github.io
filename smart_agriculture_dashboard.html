@@ -235,6 +235,15 @@
         <header>
             <h1>🌾 Smart Agriculture AI Dashboard</h1>
             <p class="subtitle">Real-time monitoring and AI-powered decision support system</p>
+            <div style="margin-top: 15px;">
+                <button class="action-button" onclick="fetchRealSensorData()" style="margin-right: 10px;">
+                    🔄 Fetch Latest Data
+                </button>
+                <button class="action-button" onclick="updateDashboard()" style="background: #10b981;">
+                    📊 Refresh Analysis
+                </button>
+                <span id="connectionStatus" style="margin-left: 15px; color: white; font-size: 0.9em;"></span>
+            </div>
         </header>
 
         <div class="dashboard-grid">
@@ -731,9 +740,112 @@
             Plotly.newPlot('trendsChart', traces, layout, { responsive: true, displayModeBar: false });
         }
 
-        // Initialize and auto-update
+        // Initialize dashboard with initial data
         updateDashboard();
-        setInterval(updateDashboard, 5000); // Update every 5 seconds
+        
+        // Function to fetch real sensor data from backend
+        async function fetchRealSensorData() {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.textContent = '⏳ Fetching data...';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/analyze');
+                
+                if (!response.ok) {
+                    throw new Error('Backend not responding');
+                }
+                
+                const data = await response.json();
+                
+                // Update sensor readings
+                const sensorData = data.sensor_readings;
+                document.getElementById('moisture').textContent = sensorData.moisture.toFixed(1) + '%';
+                document.getElementById('temperature').textContent = sensorData.temperature.toFixed(1) + '°C';
+                document.getElementById('humidity').textContent = sensorData.humidity.toFixed(1) + '%';
+                document.getElementById('light').textContent = sensorData.light.toFixed(0) + ' lux';
+                document.getElementById('sensorTimestamp').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+                
+                // Update irrigation prediction
+                const irrigation = data.irrigation;
+                document.getElementById('irrigationAmount').textContent = irrigation.irrigation_liters_per_sqm.toFixed(1);
+                const percentage = Math.round((irrigation.irrigation_liters_per_sqm / 100) * 100);
+                document.getElementById('irrigationProgress').style.width = percentage + '%';
+                document.getElementById('irrigationProgress').textContent = percentage + '%';
+                document.getElementById('irrigationRecommendation').innerHTML = irrigation.recommendation;
+                
+                // Update crop health
+                const health = data.crop_health;
+                const healthIndicator = document.querySelector('#healthStatus .status-indicator');
+                const statusClass = health.health_status === 'Healthy' ? 'status-healthy' : 
+                                   health.health_status === 'Moderate Stress' ? 'status-moderate' : 'status-stressed';
+                healthIndicator.className = 'status-indicator ' + statusClass;
+                document.getElementById('healthLabel').textContent = health.health_status;
+                document.getElementById('healthLabel').style.color = statusClass === 'status-healthy' ? '#10b981' : 
+                                                                       statusClass === 'status-moderate' ? '#f59e0b' : '#ef4444';
+                document.getElementById('healthRecommendation').innerHTML = health.recommendations.map(r => '• ' + r).join('<br>');
+                
+                // Update yield prediction
+                const yieldPred = data.yield_prediction;
+                document.getElementById('yieldAmount').textContent = yieldPred.predicted_yield_kg_per_ha.toLocaleString();
+                document.getElementById('harvestDate').textContent = yieldPred.optimal_harvest_date;
+                
+                // Update anomalies
+                const anomalies = data.anomalies;
+                if (anomalies.length > 0) {
+                    document.getElementById('systemStatus').innerHTML = '<span style="color: #ef4444;">⚠️ Anomalies Detected</span>';
+                    const anomalyList = document.getElementById('anomalyList');
+                    anomalyList.innerHTML = anomalies.map(a => `
+                        <li class="anomaly-item">
+                            <strong>${a.type}</strong> (${a.severity})<br>
+                            ${a.message}<br>
+                            <span class="anomaly-time">${new Date(a.timestamp).toLocaleTimeString()}</span>
+                        </li>
+                    `).join('');
+                    
+                    // Update alerts
+                    const alertsHtml = anomalies.filter(a => a.severity === 'CRITICAL' || a.severity === 'WARNING').map(a => `
+                        <div class="alert-box ${a.severity === 'CRITICAL' ? 'alert-critical' : ''}">
+                            <strong>${a.type}</strong><br>
+                            ${a.message}
+                        </div>
+                    `).join('');
+                    document.getElementById('alertsContainer').innerHTML = alertsHtml || '<p style="text-align: center; color: #666;">No active alerts</p>';
+                } else {
+                    document.getElementById('systemStatus').innerHTML = '<span style="color: #10b981;">✅ All Systems Normal</span>';
+                    document.getElementById('anomalyList').innerHTML = '<li style="text-align: center; color: #666;">No anomalies detected</li>';
+                    document.getElementById('alertsContainer').innerHTML = '<p style="text-align: center; color: #666;">No active alerts</p>';
+                }
+                
+                statusEl.textContent = '✅ Connected to backend';
+                statusEl.style.color = '#10b981';
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                statusEl.textContent = '❌ Backend not connected - showing simulated data';
+                statusEl.style.color = '#ef4444';
+            }
+        }
+        
+        // Check backend connection on load
+        fetchRealSensorData();
+        
+        // Note: Dashboard will update when new sensor data is received from backend
+        // To connect to real sensors, integrate with the backend API:
+        // Uncomment below to enable periodic checks from backend API
+        /*
+        setInterval(async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/sensors');
+                const data = await response.json();
+                // Update with real sensor data
+                if (data && data.data) {
+                    updateDashboardWithRealData(data.data);
+                }
+            } catch (error) {
+                console.log('Backend not connected - using simulated data');
+            }
+        }, 30000); // Check every 30 seconds
+        */
     </script>
 </body>
 </html>
