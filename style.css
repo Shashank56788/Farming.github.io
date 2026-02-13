@@ -1,14 +1,9 @@
-/* ============================================================================
-   Smart Agriculture AI System - Global Styles
-   ============================================================================ */
-
-/* CSS Variables */
 :root {
     /* Colors */
-    --primary-color: #667eea;
-    --primary-dark: #5568d3;
-    --secondary-color: #764ba2;
-    --accent-color: #f093fb;
+    --primary-color: #b9232a;
+    --primary-dark: #cacaca00;
+    --secondary-color: #270ca1;
+    --accent-color: #56215c;
     
     --success-color: #10b981;
     --warning-color: #f59e0b;
@@ -999,13 +994,11 @@ header .subtitle {
     color: var(--text-secondary);
 }
 
-/* ============================================================================
-   Responsive Design
-   ============================================================================ */
+
 
 @media (max-width: 768px) {
     .nav-menu {
-        display: none; /* Mobile menu would require JS implementation */
+        display: none;
     }
     
     .hero {
@@ -1061,9 +1054,7 @@ header .subtitle {
     }
 }
 
-/* ============================================================================
-   Utility Classes
-   ============================================================================ */
+
 
 .text-center { text-align: center; }
 .text-left { text-align: left; }
