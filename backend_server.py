@@ -1,9 +1,3 @@
-"""
-Smart Agriculture Backend Server
-=================================
-Flask REST API server for AI model predictions
-"""
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from smart_agriculture_ai_models import SmartAgricultureSystem
@@ -18,7 +12,7 @@ print("Initializing Smart Agriculture AI System...")
 ai_system = SmartAgricultureSystem()
 print("System ready!\n")
 
-# Simulated sensor data (in production, this would come from actual IoT sensors)
+
 current_sensor_data = {
     'moisture': 45.0,
     'temperature': 25.0,
@@ -68,7 +62,7 @@ def update_sensors():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
     
-    # Update only provided fields
+    
     for key in ['moisture', 'temperature', 'humidity', 'light']:
         if key in data:
             current_sensor_data[key] = float(data[key])
@@ -144,7 +138,7 @@ def get_anomalies():
 def analyze():
     """Get comprehensive analysis"""
     
-    # Allow custom data via POST
+    
     if request.method == 'POST':
         custom_data = request.json
         if custom_data:
@@ -173,7 +167,7 @@ def simulate():
     """Simulate sensor readings for testing"""
     global current_sensor_data
     
-    # Generate random realistic sensor data
+    
     current_sensor_data.update({
         'moisture': float(np.random.uniform(30, 60)),
         'temperature': float(np.random.uniform(20, 32)),
@@ -181,7 +175,7 @@ def simulate():
         'light': float(np.random.uniform(300, 800))
     })
     
-    # Run analysis
+    
     results = ai_system.analyze(current_sensor_data)
     
     return jsonify({
